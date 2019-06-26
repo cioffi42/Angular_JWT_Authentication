@@ -1,0 +1,27 @@
+{
+  "name": "authenticate_poc_3",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "start": "nodemon server.js"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "bcryptjs": "^2.4.3",
+    "body-parser": "^1.19.0",
+    "bookshelf": "^0.15.1",
+    "dotenv": "^8.0.0",
+    "express": "^4.17.1",
+    "express-promise-router": "^3.0.3",
+    "knex": "^0.17.6",
+    "nodemon": "^1.19.1",
+    "passport": "^0.4.0",
+    "passport-jwt": "^4.0.0",
+    "passport-local": "^1.0.0",
+    "path": "^0.12.7",
+    "pg": "^7.11.0",
+    "unhandled-error": "^1.0.0"
+  }
+}
