@@ -5,10 +5,13 @@ module.exports = function({db}) {
 
     const passport = require('passport');
     const LocalStrategy = require('passport-local').Strategy;
-    const passportJWT = require('passport-jwt');
-    const JWTStrategy = passportJWT.Strategy;
+    // const passportJWT = require('passport-jwt');
+    // const JWTStrategy = passportJWT.Strategy;
+    const JwtStrategy = require('passport-jwt').Strategy,
+    ExtractJwt = require('passport-jwt').ExtractJwt;
     const bcrypt = require('bcryptjs');
     const Promise = require("bluebird");
+    const util = require('util');
 
     passport.use('login', new LocalStrategy({  
         usernameField: 'username',
@@ -39,18 +42,43 @@ module.exports = function({db}) {
         })
     }));
 
-    passport.use('jwt', new JWTStrategy({
-        jwtFromRequest: req => req.cookies.jwt,
-        secretOrKey: process.env.SECRET_OR_KEY,
-    },
-    (jwtPayload, done) => {
-        if (Date.now() > jwtPayload.expires) {
-        return done('jwt expired');
-        }
+    let opts = {}
+    opts.jwtFromRequest = ExtractJwt.fromAuthHeaderAsBearerToken();
+    opts.secretOrKey = process.env.SECRET_OR_KEY;
 
-        return done(null, jwtPayload);
-    }
-    ));
+    passport.use(new JwtStrategy(opts, (jwt_payload, done) => {
+        console.log(`payload: ${util.inspect(jwt_payload)}`);
+        console.log(`payload: ${jwt_payload.username}`);
+        Promise.try(() => {
+            return db('bands').from('users').where('username', jwt_payload.username)
+            .then((user) => {       //what to do if error or user DNE
+                console.log(`user: ${util.inspect(user)}`);
+                // if (err) {
+                //     return done(err, false);
+                // }
+                if (user[0]) {
+                    return done(null, user);
+                } else {
+                    console.log("user doesn't exist for that token");
+                    return done(null, false);
+                    // or you could create a new account
+                }
+            });
+        });
+    }));
+
+    // passport.use(new JWTStrategy({
+    //     jwtFromRequest: req => req.cookies.jwt,
+    //     secretOrKey: process.env.SECRET_OR_KEY,
+    // },
+    // (jwtPayload, done) => {
+    //     if (Date.now() > jwtPayload.expires) {
+    //     return done('jwt expired');
+    //     }
+
+    //     return done(null, jwtPayload);
+    // }   
+    // ));
 
     //TODO check this
     passport.serializeUser(function(user, done) {

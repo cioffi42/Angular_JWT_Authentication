@@ -38,9 +38,10 @@ module.exports = function({db}) {
 	});
 
 	
-	router.get("/secret", passport.authenticate('jwt', { session: false }), function(req, res){
+	router.get("/secret", passport.authenticate('jwt', { session: false }), (req, res) =>{
 		res.json("Success! You can not see this without a token");
 	});
+
 	//add band, require auth
 	router.post('/band', (req, res) => {
 		Promise.try(() => {
@@ -155,10 +156,16 @@ module.exports = function({db}) {
 				// console.log(`err: ${util.inspect(err)}`);
 				// console.log(`user: ${util.inspect(user)}`);
 				// console.log(`info: ${util.inspect(info)}`);
-				const payload = { username: req.body.username };
+
+				/** This is what ends up in our JWT */
+				const payload = {
+					username: user[0].username,
+					expires: Date.now() + parseInt(process.env.JWT_EXPIRATION_MS),
+				};
 				const token = jwt.sign(payload, process.env.SECRET_OR_KEY);
 				// console.log(`token: ${token}`);
 				res.status(200).send({token: token});
+				//res.status(200).json({message: "Auth Passed", token});	//this is another option, not sure if best
 			})(req, res, next);	//TODO what's up with this? https://stackoverflow.com/questions/20626183/more-passport-js-woes-hangs-on-form-submission
 			// .catch(err => {
 			// 	return res.status(401).send({ err: err });
@@ -203,7 +210,3 @@ module.exports = function({db}) {
 
 	return router;
 }
-
-
-
-
