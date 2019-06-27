@@ -77,10 +77,6 @@ app.use((req, res) => {
 	res.status(404).send('404 resource not found')
 });
 
-
-
-
-
 app.listen(PORT, () => {
 	console.log(`Listening at http://localhost:${PORT}`);
 });

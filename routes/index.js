@@ -7,12 +7,6 @@ module.exports = function({db}) {
 	const passport = require('passport');
 	require('../passport');
 	const jwt = require('jsonwebtoken');
-	const util = require('util');
-	// //Import Routes
-	// const authRoute = require('./auth');
-
-	// //Route Middlewares
-	// app.use('/user', authRoute);
 
 	//should this be in server.js?
 	const Band = bookshelf.Model.extend({
@@ -37,13 +31,8 @@ module.exports = function({db}) {
 		});
 	});
 
-	
-	router.get("/secret", passport.authenticate('jwt', { session: false }), (req, res) =>{
-		res.json("Success! You can not see this without a token");
-	});
-
 	//add band, require auth
-	router.post('/band', (req, res) => {
+	router.post('/band', passport.authenticate('jwt', { session: false }), (req, res) => {
 		Promise.try(() => {
 			console.log(req.body);
 			if(!req.body.name) {
@@ -64,7 +53,7 @@ module.exports = function({db}) {
 	});
 
 	//update band, require auth
-	router.put('/band/:id', (req, res) => {
+	router.put('/band/:id', passport.authenticate('jwt', { session: false }), (req, res) => {
 		Promise.try(() => {
 			console.log(req.body);
 			if(!req.body.name) {
@@ -95,7 +84,7 @@ module.exports = function({db}) {
 	});
 
 	//delete band, require auth
-	router.delete('/band/:id', (req, res) => {
+	router.delete('/band/:id', passport.authenticate('jwt', { session: false }), (req, res) => {
 		Promise.try(() => {
 			console.log(`req.params.id ${req.params.id}`);
 			return db("bands").where('id', req.params.id).del();
@@ -148,22 +137,14 @@ module.exports = function({db}) {
 			passport.authenticate('login', (err, user, info) => {
 				// If this function gets called, authentication was successful.
 				// `req.user` contains the authenticated user.
-				//res.redirect('/users/' + req.user.username);
-				// console.log(`req: ${util.inspect(req)}`);
-				// console.log(`res: ${util.inspect(res)}`);
-				// console.log(`next: ${util.inspect(next)}`);
-				// console.log(`result: ${util.inspect(result)}`);
-				// console.log(`err: ${util.inspect(err)}`);
-				// console.log(`user: ${util.inspect(user)}`);
-				// console.log(`info: ${util.inspect(info)}`);
 
 				/** This is what ends up in our JWT */
 				const payload = {
 					username: user[0].username,
 					expires: Date.now() + parseInt(process.env.JWT_EXPIRATION_MS),
 				};
+
 				const token = jwt.sign(payload, process.env.SECRET_OR_KEY);
-				// console.log(`token: ${token}`);
 				res.status(200).send({token: token});
 				//res.status(200).json({message: "Auth Passed", token});	//this is another option, not sure if best
 			})(req, res, next);	//TODO what's up with this? https://stackoverflow.com/questions/20626183/more-passport-js-woes-hangs-on-form-submission
@@ -173,13 +154,21 @@ module.exports = function({db}) {
 		});
 	});
 
-	//this proves can login and bcrypt hash works
+	//test route to login without JWT
+	//proves bcrypt hashing of pw and user table works
 	router.post('/nojwtlogin',
 		passport.authenticate('login', { successRedirect: '/',
 										failureRedirect: '/testlogin',
 										failureFlash: true })
 	);
 
+	//test route for JWT protection
+	//pass bearer token into request 
+	router.get("/secret", passport.authenticate('jwt', { session: false }), (req, res) =>{
+		res.json("Success! You can not see this without a token");
+	});
+
+	//TODO: anything good from this, implement in the one that works above
 	// router.post('/login', (req, res, next) => {	//TODO: why do you need next, or why would you
 	// 	passport.authenticate('login', { session: false }, (error, user, info) => {	//TODO: lookinto info param
 	// 		if (error) {

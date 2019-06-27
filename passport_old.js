@@ -7,8 +7,6 @@ const passportJWT = require('passport-jwt');
 const JWTStrategy = passportJWT.Strategy;
 const bcryptjs = require('bcryptjs');
 
-//const { secret } = require('./keys');
-
 const UserModel = require('./models/user');
 
 passport.use(new LocalStrategy({
@@ -41,9 +39,6 @@ passport.use(new JWTStrategy({
     return done(null, jwtPayload);
   }
 ));
-
-
-
 
 
 router.post('/login', (req, res) => {

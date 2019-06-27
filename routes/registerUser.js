@@ -1,3 +1,5 @@
+//this is not used, might want to see if there's any good techniques from here to use in working code
+
 import bookshelf from 'index.js';
 import passport from 'passport';
 
